@@ -1,0 +1,4 @@
+__dirname代表当前文件所在的目录的相对路径
+
+console.log(__dirname);
+//   /Users/mjr;

@@ -1,0 +1,39 @@
+前端写好静态页面, 将静态页面交给后端, 后端将html部分拆解嵌入模板引擎(php, ejs, jsp, asp等)文件中, 对数据进行填充和查询然后发送回客户端.
+
+基本思路:
+写完前端页面
+
+在前端文件common.js中完成请求发送
+
+完成后端路由, 
+[!!!!或许需要依据前端的变动决定本次发送的art文件内要改动哪些部分,生成新的需改动数据向art模板文件内的{{}}传入!!!]
+决定响应头
+
+在server.js中配置art-template模板默认路径, 相关options
+server.js中配置body-parser来解析前端发来的数据
+
+利用art-template中的res.render()决定向前端发送哪个art文件
+推测, res.render参数2传入的值意在根据不同页面来实时改变art文件内的属性值, 目的或为只构建一个art文件作为多个页面的模板?
+疑问: 向中间件内规定大量的值会使路由代码混乱度增加, 且观察到已经有在view目录下为每个页面单独创建art模板文件的方案, 向res.render内传值意义何在?
+推测: 需要根据前端的相关数据来实时改变本次发送的art文件内某些属性的值, 所以有向art文件内传值的必要而不是仅仅为每个页面单独准备一个art文件
+根据路由决定发送哪个art模板文件
+
+路由中间件抽离
+
+最终被发到前端的是这个art模板文件的内容:
+    res.render('list', {
+        data: JSON.stringify(dataArray)
+    });
+因为art-template也能在浏览器环境下使用, 所以前端可以在请求成功的应对方法中规定要对传来的模板内容进行的操作:
+    let templateStr = `
+      <ul>
+        {{each data}}
+          <li>{{$value}}</li>
+        {{/each}}
+      </ul>
+    `
+    let html = template.render(templateStr, {
+      data: result.data
+    })
+
+    $('#list').html(html)

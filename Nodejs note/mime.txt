@@ -1,0 +1,26 @@
+const mime = require('mime');
+
+mime.getType('txt');    // 返回Content-Type格式 'text/plain';
+mime.getExtension('text/plain');    //返回后缀名格式 'txt';
+
+
+
+__________________________________________________________________________________________
+//获取文件后缀名, 界定Content-Type; 
+const fs = require('fs');
+const mime = require('mime');
+
+.createServer((req, res) => {
+  const urlString = req.url;
+  const type = mime.getType(urlString.split('.')[1]);
+
+  res.writeHead( 200, {'Content-Type': type '; charset="utf-8"'} );
+
+    const file = fs.readFileSync(`${urlString}`, (error) => {
+      console.log(error);
+      res.end(file);
+    );
+}).listen(3000, (error) => {
+    console.log('监听中');
+});
+

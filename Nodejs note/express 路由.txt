@@ -1,0 +1,99 @@
+
+const router = express.Router();
+//路由中间件router;
+//路由中间件一定是个函数;
+
+router.get('/', (req, res, next) => {
+    res.send('hello');
+});
+//use会出现正则匹配错误的情况出现, router并不会.
+router.get('/index', (req, res, next) => {
+    res.send('index pages');
+});
+
+module.exports = router;
+
+
+__________________________________________________________________
+
+app.use('/api', (req, res, next) => {
+    console.log(0);
+    next();
+},(req, res, next) => {
+    console.log(1);
+    next();
+}, (req, res) = >{
+    console.log(2);
+})
+
+//////////猜测 : app.use中next作用为为一个路由执行多个中间件, 而非与前端路由权限遍历相似.
+app.use()的中间件让我想到了在前端用Vue做多级路由权限(虽然用不上next方法但是), 那个会用到一个beforeEach()方法,我们会用这个方法来遍历添加权限判断 我不知道这是否有什么联系, 但是它们真的有点像...
+
+Vue的权限系统在做的时候, 要是不想给每条路由单独写个权限判断,那就得用这个, 比如我希望1, 2, 3页面不登陆都进不去, 那就要写3个判断,但凡少写一个, 用户就可以通过输入URL越过前面的页面权限直接跳转, 页面少还好, 多了就比较完蛋了..
+
+beforeEach可以遍历添加权限, 在页面很多的情况下相对会方便一些;
+router.beforeEach((to, from, next) => {
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+  //some检测to.match数组的元素里是否有至少一个满足[meta属性里有requiresAuth];
+    if (!auth.loggedIn()) {  
+//要是没登陆就踢回登录页;
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+    next() //否则放行;
+  }
+})
+
+当有多个子路由需要操作的时候, 使用app.use()会是一个更好的选择, 所以...
+router.js专门负责路由, 在里面弄一个大路由router然后把小路由全都匹配到大路由上, 到时候直接app.use()这个大路由就好了, 如果用上面写的app.get一个个来, 在暴露和引入使用时都不会太方便, 很遗憾我使用了这种"一个个来"的方式去配置路由:
+
+app.get("/news", function (req, res) {
+    res.send("展示信息");
+})
+app.get("/register", function (req, res) {
+    res.send("注册页信息");
+})
+app.get("/", function (req, res) {
+    res.send("首页信息");
+})
+app.post("/doLogin", function (req, res) {
+    res.send(req.body);
+})
+
+app.use(path,callback)callback可以是router函数也可以是其他函数, 
+对...router是个函数:
+[Function: router] {
+  params: {},
+  _params: [],
+  caseSensitive: undefined,
+  stack: []
+}
+__________________________________________________________________________________
+
+app.use('/', (req, res) => {
+    res.send('hello');
+}
+
+app.use('/api', (req, res) => {
+    res.send('world');
+},)
+
+这种直接使用use()来激活每条路由的写法会导致正则匹配错误, 进入更深一级文件路由时依旧会显示能最早匹配到的URL对应的页面, 不过这并不是express路由的最终样子.
+比如URL上面的URL成为/api时, 依旧会显示"hello"
+
+这像是依据正则进行匹配, 两个都有'/', 而JS的解析是从上至下,上面的一旦匹配, 下面的就没机会了, 一次请求只会触发一次createServer(), 而res.send()或res.join这种方法如果执行完毕就自动返回, 这一轮响应到这就结束了.
+
+这与Vue的路由不太像, Vue-router(我是说路由表那边)不会出现这种结果, Vue路由的结构更加像是标准版的express路由:
+
+那是先用express模块的Router()方法注册中间件, 在Vue中这个"中间件"应该可以看作数组routes.
+
+然后在这个中间件上安插各条路由, 也就像在routes数组中配置各条路由.
+中间件就像是脊椎, 而这些路由就像是肋骨. 
+
+路由插上去以后, 我们把脊椎拔出来, 将router暴露, 在server.js中注册app.use('/', router).
+就像vue中将路由表暴露至app.js注册到全局, 
+________________________________________________________________________________________
+//////说一下封装的拟app.get和app.get的关系.

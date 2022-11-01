@@ -1,0 +1,35 @@
+一个createServer中必须存在res.end()
+你可以把它写在内部方法里, 也可以直接暴露在createServer中
+只要有就好, 无论在什么地方.
+
+require('http').createServer(req, res) => {
+
+    const urlString = req.url;
+    ///urlString就是本次请求的URL;
+  
+   switch(urlString) {
+
+    case '/';
+        res.end('HelloWorld);
+    break;
+   
+    case '/home';
+        fs.readFileSync('./home', (err, data) => {
+            res.writeHead(200, {'Content-Type':'text/html; charset="utf-8"'});
+//作为后端要写上writeHead响应头, 我们需要直接告诉前端如何去读取这个文件(告知Content-Type), 让前端好办.
+            res.end(data);    ///比如res.end()写在readFileSync中;
+        });
+    break;
+ 
+    case './app.js';
+//考虑使用mime动态绑定文件类型来解决文件导入失败的问题
+//在可视页发送请求时, 请求的URL会指向app.js/123.png/fs.js等, 全部在路由里写入工程量巨大.
+        fs.readFileSync('./app.js', (err, data) => {
+             res.end(data);    ///比如res.end()写在readFileSync中;
+        });
+    break; 
+
+    default:
+        res.end("当前请求的页面不存在");
+    }
+});
