@@ -1,0 +1,6 @@
+使用VSCode进行debugger的话, package.json中的main值一定要是
+nodejs入口文件
+
+左aside瓢虫图标, 运行和调试之前先打断点.
+JS Debug终端: 呼出degub终端
+开始debug之后弹出的小控制台最左侧一口气执行完, 剩下的可以逐行操作
